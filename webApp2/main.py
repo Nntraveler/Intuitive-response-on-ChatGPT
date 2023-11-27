@@ -22,6 +22,7 @@ import io
 from collections import defaultdict
 import json
 from sentence_transformers import SentenceTransformer, util
+import fitz
 
 app = FastAPI()
 env = Environment(loader=FileSystemLoader('templates'))
@@ -40,7 +41,6 @@ templates = Jinja2Templates(directory=template_folder)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/mock_data", StaticFiles(directory="mock_data"), name="mock_data")
 
-
 chat_history = []
 
 class ChatMessage(BaseModel):
@@ -58,6 +58,20 @@ def match_page(file_name, prompts, top_k=1):
     query_embedding = model.encode(prompts, convert_to_tensor=True)
     top_k_indices = util.semantic_search(query_embedding, corpus_embeddings, top_k=top_k)
     return top_k_indices
+
+def covert_pdf_page_to_image(pdf_path, page_numbers, target_directory):
+    doc = fitz.open(pdf_path)
+    images = []
+    for page_number in page_numbers:
+        page = doc.load_page(page_number - 1)
+        mat = fitz.Matrix(4, 4)
+        pix = page.get_pixmap(matrix=mat, dpi=300)
+        image_path = os.path.join(target_directory, f"whole_page_{page_number}.png")
+        pix.save(image_path)
+        images.append(image_path)
+
+    doc.close()
+    return images
 
 @app.get("/styles.css", response_class=FileResponse)
 def styles():
@@ -87,12 +101,15 @@ async def handle_message(
     }
 
     print(chat_history["message"])
-    file_name = f"ir-Q4-{year}-full-announcement.pdf"
+    file_name = f"ir-q4-{year}-full-announcement.pdf"
     top_k = 3
     page_nums = match_page(file_name, chat_history["message"], top_k)[0]
     corpus_ids = [item['corpus_id'] for item in page_nums]
     print(corpus_ids)
     target_directory = f"mock_data/result/{company}_{year}/"
+
+    pdf_page_image_urls = covert_pdf_page_to_image(file_name, corpus_ids, target_directory)
+
     file_list = os.listdir(target_directory)
     result_files = []
     for page_num in corpus_ids:
@@ -103,10 +120,12 @@ async def handle_message(
     print(result_files)
 
     directory = f"mock_data/result/{company}_{year}/"
+    print(pdf_page_image_urls)
     images = [directory + image_file for image_file in result_files]
 
     return templates.TemplateResponse("index.html", {
         "request": request,
+        "pdf_pages": json.dumps(pdf_page_image_urls),
         "images": json.dumps(images),
         "filename": file_name
     })

@@ -245,8 +245,12 @@ body {
     align-self: flex-start;
 }
 
+.result_pdf_display{
+    margin: 10px;
+    height: 800px;
+    width: 700px;
+}
+
 .result_img_display{
-
     margin:10px;
-
 }

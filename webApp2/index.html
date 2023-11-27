@@ -137,36 +137,57 @@
             // If all fields are non-empty, allow form submission
             return true;
         }
-
+        var pdf_pages = JSON.parse('{{ pdf_pages | safe }}');
         var images = JSON.parse('{{ images | safe }}');
         var filename = '{{ filename | safe }}';
         var download  = '{{ download_link | safe }}';
-        if(Array.isArray(images)){
+
+        if(Array.isArray(pdf_pages)){
+            // Annual report file name
             const reference = document.createElement('p');
             reference.textContent = `Reference:  ${filename}`;
             document.getElementById('gallery').appendChild(reference);
-            images.forEach(image_path => {
-                const img = document.createElement('img');
-                img.src = image_path;
-                img.classList.add("result_img_display");
 
-                const match = /page_(\d+)_((?:table|image))_(\d+)\.png$/.exec(image_path);
+            // Relevant page in pdf file
+            pdf_pages.forEach(pdf_path => {
+                const pdf_img = document.createElement('img');
+                pdf_img.src = pdf_path;
+                pdf_img.classList.add("result_pdf_display");
+                const match = /whole_page_(\d+)/.exec(pdf_path);
                 const pageNumber = match[1];
-                const tableOrImage = match[2];
-                const itemNumber = match[3];
-
                 const caption = document.createElement('p');
-                caption.textContent = `Citation: ${capitalizeFirstLetter(tableOrImage)} ${itemNumber} in Page ${pageNumber}`;
+                caption.textContent = `Citation: page ${pageNumber} `;
 
                 const container = document.createElement('div');
-                container.appendChild(img);
+                container.appendChild(pdf_img);
                 container.appendChild(caption);
 
                 document.getElementById('gallery').appendChild(container);
-            });
+            })
 
+            if(Array.isArray(images)){
+                images.forEach(image_path => {
+                    const img = document.createElement('img');
+                    img.src = image_path;
+                    img.classList.add("result_img_display");
+
+                    const match = /page_(\d+)_((?:table|image))_(\d+)\.png$/.exec(image_path);
+                    const pageNumber = match[1];
+                    const tableOrImage = match[2];
+                    const itemNumber = match[3];
+
+                    const caption = document.createElement('p');
+                    caption.textContent = `Citation: ${capitalizeFirstLetter(tableOrImage)} ${itemNumber} in Page ${pageNumber}`;
+
+                    const container = document.createElement('div');
+                    container.appendChild(img);
+                    container.appendChild(caption);
+
+                    document.getElementById('gallery').appendChild(container);
+                });
+            }
         } else {
-            console.error('images is not an array:', images);
+            console.error('pdf is not an array:', pdf_pages);
         }
 
         function capitalizeFirstLetter(string) {
