@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <form method="post" action="/start_new_chat">
+        <div class="chat-button-container">
+            <h2 style = "font-family: sans-serif; font-size: 12px;">Start <br> New Chat</h2>
+            <button type="submit" id="new-chat" class="new-chat">
+                <img src="/static/Image/new-chat.png" alt="Icon" style="width: 45px; height: 45px; margin-left:8px;">
+            </button>
+        </div>
+    </form>
+    <div id="gallery"></div>
+    <script>
+    var images = JSON.parse('{{ images | safe }}');
+    var filename = '{{ filename | safe }}';
+    if(Array.isArray(images)){
+        images.forEach(image_path => {
+            const img = document.createElement('img');
+            img.src = image_path;
+            img.classList.add("result_img_display");
+
+            const match = /page_(\d+)_((?:table|image))_(\d+)\.png$/.exec(image_path);
+            const pageNumber = match[1];
+            const tableOrImage = match[2];
+            const itemNumber = match[3];
+
+            const caption = document.createElement('p');
+            caption.textContent = `Citation: ${capitalizeFirstLetter(tableOrImage)} ${itemNumber} in Page ${pageNumber}`;
+
+            const container = document.createElement('div');
+            container.appendChild(img);
+            container.appendChild(caption);
+
+            document.getElementById('gallery').appendChild(container);
+        });
+        const reference = document.createElement('p');
+        reference.textContent = `Reference:  ${filename}`;
+        document.getElementById('gallery').appendChild(reference);
+
+    } else {
+        console.error('images is not an array:', images);
+    }
+
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    </script>
+</body>
+</html>
