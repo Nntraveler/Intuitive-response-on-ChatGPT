@@ -39,12 +39,28 @@ app.add_middleware(
 template_folder = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=template_folder)
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/mock_data", StaticFiles(directory="mock_data"), name="mock_data")
+app.mount("/data", StaticFiles(directory="data"), name="data")
 
 chat_history = []
 
+
 class ChatMessage(BaseModel):
     message: str
+
+
+# use to find the name of the annual report in the corresponding year and the company
+def find_pdf_file_in_directory(directory_path):
+    files_in_directory = os.listdir(directory_path)
+
+    pdf_files = [file for file in files_in_directory if file.endswith('.pdf')]
+
+    if len(pdf_files) == 1:
+        return pdf_files[0]
+    elif len(pdf_files) == 0:
+        return None
+    else:
+        return None
+
 
 def match_page(file_name, prompts, top_k=1):
     model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -58,6 +74,7 @@ def match_page(file_name, prompts, top_k=1):
     query_embedding = model.encode(prompts, convert_to_tensor=True)
     top_k_indices = util.semantic_search(query_embedding, corpus_embeddings, top_k=top_k)
     return top_k_indices
+
 
 def covert_pdf_page_to_image(pdf_path, page_numbers, target_directory):
     doc = fitz.open(pdf_path)
@@ -73,26 +90,30 @@ def covert_pdf_page_to_image(pdf_path, page_numbers, target_directory):
     doc.close()
     return images
 
+
 @app.get("/styles.css", response_class=FileResponse)
 def styles():
     return FileResponse('static/css/styles.css')
+
 
 @app.get("/")
 async def read_index():
     print(template_folder)
     return FileResponse('index.html')
 
+
 @app.post("/start_new_chat")
 async def start_new_chat():
     # Redirect to the home page
     return RedirectResponse(url='/', status_code=303)
 
+
 @app.post("/send_message")
 async def handle_message(
-    request: Request,
-    message: str = Form(...),
-    year: str = Form(...),
-    company: str = Form(...)
+        request: Request,
+        message: str = Form(...),
+        year: str = Form(...),
+        company: str = Form(...)
 ):
     chat_history = {
         "message": message,
@@ -101,12 +122,14 @@ async def handle_message(
     }
 
     print(chat_history["message"])
-    file_name = f"ir-q4-{year}-full-announcement.pdf"
+    # Retrieve the pdf name of the report
+    target_directory = f"data/result/{company}_{year}/"
+    file_name = os.path.join(target_directory, find_pdf_file_in_directory(target_directory))
+    print(file_name)
     top_k = 3
     page_nums = match_page(file_name, chat_history["message"], top_k)[0]
     corpus_ids = [item['corpus_id'] for item in page_nums]
     print(corpus_ids)
-    target_directory = f"mock_data/result/{company}_{year}/"
 
     pdf_page_image_urls = covert_pdf_page_to_image(file_name, corpus_ids, target_directory)
 
@@ -119,7 +142,7 @@ async def handle_message(
                 result_files.append(file)
     print(result_files)
 
-    directory = f"mock_data/result/{company}_{year}/"
+    directory = f"data/result/{company}_{year}/"
     print(pdf_page_image_urls)
     images = [directory + image_file for image_file in result_files]
 
@@ -130,12 +153,14 @@ async def handle_message(
         "filename": file_name
     })
 
+
 @app.get("/download/{zip_name}")
 async def download_zip(zip_name: str):
     zip_path = Path("temp") / zip_name
     if not zip_path.is_file():
         return {"message": "File not found"}
     return FileResponse(path=zip_path, filename=zip_path.name, media_type='application/zip')
+
 
 @app.post("/back_to_chat")
 async def handle_message():
