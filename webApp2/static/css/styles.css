@@ -256,8 +256,6 @@ body {
   border-radius: 15px;
   padding: 10px 15px;
   margin: 5px 0;
-  max-width: 60%;
-  word-wrap: break-word;
 }
 
 .profile_img{
@@ -273,12 +271,12 @@ body {
 
 .result_img_display{
     margin:10px;
+    max-width: 700px;
 }
 
 .result_pdf_display{
     margin: 10px;
     height: auto;
-    width: 700px;
 }
 
 .pdf-toggle-button{
@@ -294,8 +292,8 @@ body {
 }
 
 .result_pdf_display img {
-    max-width: 100%;
     height: auto;
+    width: 700px;
     display: block;
     margin-top: 10px;
     margin-left: 20px;

@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 import uvicorn
 from fastapi import FastAPI, Form, Request, HTTPException
@@ -81,6 +82,24 @@ def covert_pdf_page_to_image(pdf_path, page_numbers, target_directory):
     return images
 
 
+def custom_sort(filepath, page_order):
+    filename = filepath.split('/')[-1]
+    page_match = re.search(r'page_(\d+)_', filename)
+    table_match = re.search(r'table_(\d+)', filename)
+
+    if table_match:
+        page_number = int(page_match.group(1)) if page_match else 0
+        table_number = int(table_match.group(1))
+        return (page_order.index(page_number), 'table', table_number)
+
+    image_match = re.search(r'image_(\d+)', filename)
+    if image_match:
+        page_number = int(page_match.group(1)) if page_match else 0
+        image_number = int(image_match.group(1))
+        return (page_order.index(page_number), 'image', image_number)
+
+    return ('', '', '')
+
 @app.get("/styles.css", response_class=FileResponse)
 def styles():
     return FileResponse('static/css/styles.css')
@@ -119,7 +138,7 @@ async def handle_message(
     top_k = 3
     page_nums = match_page(file_name, chat_history["message"], top_k)[0]
     corpus_ids = [item['corpus_id'] + 1 for item in page_nums]
-
+    print(corpus_ids)
     pdf_page_image_urls = covert_pdf_page_to_image(file_name, corpus_ids, target_directory)
 
     file_list = os.listdir(target_directory)
@@ -131,14 +150,16 @@ async def handle_message(
                 result_files.append(file)
 
     directory = f"data/result/{company}_{year}/"
-    print(pdf_page_image_urls)
+
     images = [directory + image_file for image_file in result_files]
+    sorted_files = sorted(images, key=lambda x: custom_sort(x, corpus_ids))
+    print(sorted_files)
 
     user_input = f"{chat_history['message']} At {chat_history['company']} in {chat_history['year']}"
     return templates.TemplateResponse("index.html", {
         "request": request,
         "pdf_pages": json.dumps(pdf_page_image_urls),
-        "images": json.dumps(images),
+        "images": json.dumps(sorted_files),
         "filename": target_filename,
         "user_input": user_input
     })
