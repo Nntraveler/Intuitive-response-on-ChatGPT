@@ -67,6 +67,7 @@ def match_page(file_name, prompts, top_k=1):
     top_k_indices = util.semantic_search(query_embedding, corpus_embeddings, top_k=top_k)
     return top_k_indices
 
+
 def covert_pdf_page_to_image(pdf_path, page_numbers, target_directory):
     doc = fitz.open(pdf_path)
     images = []
@@ -100,6 +101,7 @@ def custom_sort(filepath, page_order):
 
     return ('', '', '')
 
+
 @app.get("/styles.css", response_class=FileResponse)
 def styles():
     return FileResponse('static/css/styles.css')
@@ -129,8 +131,11 @@ async def handle_message(
         "year": year,
         "company": company
     }
+    user_input = f"{chat_history['message']} At {chat_history['company']} in {chat_history['year']}"
 
-    print(chat_history["message"])
+    if chat_history['company'] == "L'Oreal":
+        company = "L_Oreal"
+
     # Retrieve the pdf name of the report
     target_directory = f"data/result/{company}_{year}/"
     target_filename = find_pdf_file_in_directory(target_directory)
@@ -138,7 +143,7 @@ async def handle_message(
     top_k = 3
     page_nums = match_page(file_name, chat_history["message"], top_k)[0]
     corpus_ids = [item['corpus_id'] + 1 for item in page_nums]
-    print(corpus_ids)
+
     pdf_page_image_urls = covert_pdf_page_to_image(file_name, corpus_ids, target_directory)
 
     file_list = os.listdir(target_directory)
@@ -153,9 +158,7 @@ async def handle_message(
 
     images = [directory + image_file for image_file in result_files]
     sorted_files = sorted(images, key=lambda x: custom_sort(x, corpus_ids))
-    print(sorted_files)
 
-    user_input = f"{chat_history['message']} At {chat_history['company']} in {chat_history['year']}"
     return templates.TemplateResponse("index.html", {
         "request": request,
         "pdf_pages": json.dumps(pdf_page_image_urls),
@@ -163,20 +166,6 @@ async def handle_message(
         "filename": target_filename,
         "user_input": user_input
     })
-
-
-@app.get("/download/{zip_name}")
-async def download_zip(zip_name: str):
-    zip_path = Path("temp") / zip_name
-    if not zip_path.is_file():
-        return {"message": "File not found"}
-    return FileResponse(path=zip_path, filename=zip_path.name, media_type='application/zip')
-
-
-@app.post("/back_to_chat")
-async def handle_message():
-    return RedirectResponse(url='/', status_code=303)
-
 
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8000)

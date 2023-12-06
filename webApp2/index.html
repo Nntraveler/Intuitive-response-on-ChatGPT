@@ -47,7 +47,6 @@
               <li class = "option">2020</li>
               <li class = "option">2021</li>
               <li class = "option">2022</li>
-              <li class = "option">2023</li>
             </ul>
         </div>
 
@@ -151,10 +150,11 @@
             });
         });
 
+
+        const user_input  = '{{ user_input | safe }}';
         const pdf_pages = JSON.parse('{{ pdf_pages | safe }}');
         const images = JSON.parse('{{ images | safe }}');
         const filename = '{{ filename | safe }}';
-        const user_input  = '{{ user_input | safe }}';
 
         const user_container = document.createElement('div');
         user_container.classList.add('user-container');
@@ -219,6 +219,11 @@
                 container.appendChild(button);
                 document.getElementById('gallery').appendChild(container);
             });
+        }
+        else{
+            const messageContainer = document.createElement('div');
+            messageContainer.textContent = "There is no relevant content in the report.";
+            document.getElementById('gallery').appendChild(messageContainer);
         }
         function capitalizeFirstLetter(string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
