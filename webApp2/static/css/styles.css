@@ -245,12 +245,56 @@ body {
     align-self: flex-start;
 }
 
-.result_pdf_display{
-    margin: 10px;
-    height: 800px;
-    width: 700px;
+.user-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.message-bubble {
+  background-color: #f1f0f0;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin: 5px 0;
+}
+
+.profile_img{
+    width: 50px;
+    height: 50px;
+}
+
+.message-bubble.user {
+    background-color: rgba(255, 255, 255, 0.5);
+    align-self: flex-end;
+    margin-left: 10px;
 }
 
 .result_img_display{
     margin:10px;
+    max-width: 700px;
+}
+
+.result_pdf_display{
+    margin: 10px;
+    height: auto;
+}
+
+.pdf-toggle-button{
+    display: block;
+    background-color: rgba(159, 165, 178, 0.35);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 10px;
+    font-size: 15px;
+    font-family: "Gill Sans", sans-serif;
+}
+
+.result_pdf_display img {
+    height: auto;
+    width: 700px;
+    display: block;
+    margin-top: 10px;
+    margin-left: 20px;
 }
