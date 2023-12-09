@@ -21,9 +21,28 @@ The web application, built with FastAPI and HTML, offers a dynamic user experien
 ```
 pip install -r requirements.txt
 ```
+4. To run the program, change directory to the webApp2, and run
+```
+python main.py
+```
+
+### Troubleshooting
+
+- If you encountered problem installing fitz, you can try to install the c++ build tool first. https://visualstudio.microsoft.com/visual-cpp-build-tools/
+- If something like `connection error: [SSL: CERTIFICATE_VERIFY_FAILED]` pop up, try the following command
+```
+pip config set global.trusted-host \
+    "pypi.org files.pythonhosted.org pypi.python.org" \
+    --trusted-host=pypi.python.org \
+    --trusted-host=pypi.org \
+    --trusted-host=files.pythonhosted.org
+```
+```
+pip install certifi
+```
 
 ## Dependencies
-The application relies on various Python libraries including FastAPI, Pydantic, Jinja2, sentence_transformers, and others. A complete list can be found in the requirements.txt file.
+The application relies on various Python libraries including FastAPI, Pydantic, Jinja2, sentence_transformers, and fitz. A complete list can be found in the requirements.txt file.
 
 ## Handling New PDFs
 When integrating new PDFs into our system, it's important to ensure they are processed correctly to maintain the efficiency and accuracy of our application. Here are the steps to follow:
