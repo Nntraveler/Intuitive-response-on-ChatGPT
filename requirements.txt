@@ -4,3 +4,4 @@ jinja2
 pypdf
 sentence_transformers
 fitz
+PyMuPDF

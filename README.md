@@ -21,14 +21,18 @@ The web application, built with FastAPI and HTML, offers a dynamic user experien
 ```
 pip install -r requirements.txt
 ```
-4. To run the program, change directory to the webApp2, and run
+4. Download the data.zip and unzip it into the `webApp2/data/result` folder.
+5. To run the program, change directory to the webApp2, and run
 ```
 python main.py
 ```
+and then visit `0.0.0.0:8000` or `localhost:8000`
+
 
 ### Troubleshooting
 
 - If you encountered problem installing fitz, you can try to install the c++ build tool first. https://visualstudio.microsoft.com/visual-cpp-build-tools/
+- If something like `module frontend not found`, try to install `PyMuPDF` again.
 - If something like `connection error: [SSL: CERTIFICATE_VERIFY_FAILED]` pop up, try the following command
 ```
 pip config set global.trusted-host \
@@ -54,3 +58,9 @@ When integrating new PDFs into our system, it's important to ensure they are pro
 3. Algorithm Compatibility:
     - Unique PDF Requirement: Our backend algorithm is designed to process all PDF files within a given directory. Therefore, having more than one PDF file in a directory can disrupt the algorithm's functionality.
     - Maintaining Algorithm Integrity: To ensure the algorithm operates correctly, it is essential to have only one PDF file (the final annual report) in each Company_Year directory.
+
+## Next Step
+
+1. The current code version consider context as all the text on the same page with the images/tables. We do provide a way to match context with images/tables, and put them into the caption.json. However, the accuracy can be very low using these captions. 
+
+2. To change the match logic, take a look at `match_page` method in main.py, which takes `company_year` and users' query as input and returns the response tables/images
